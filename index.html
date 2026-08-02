@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minas Tênis Recicla</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #12261f;
+    --bg-2: #0b1a15;
+    --card-back: #234d3c;
+    --card-back-2: #2d5f4a;
+    --card-face: #f4efdf;
+    --ink: #0d1f18;
+    --lime: #a3d977;
+    --amber: #e8b23d;
+    --clay: #d97a4b;
+    --muted: #9db8ab;
+    --line: rgba(163, 217, 119, 0.18);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+      radial-gradient(ellipse at 20% -10%, rgba(163,217,119,0.10), transparent 55%),
+      radial-gradient(ellipse at 100% 110%, rgba(232,178,61,0.08), transparent 50%),
+      var(--bg);
+    color: var(--ink);
+    font-family: 'Space Grotesk', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 16px 60px;
+  }
+
+  .wrap { width: 100%; max-width: 720px; }
+
+  header { text-align: center; margin-bottom: 22px; }
+
+  .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--lime);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    font-size: clamp(32px, 6vw, 52px);
+    color: var(--card-face);
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+
+  h1 em {
+    font-style: normal;
+    color: var(--lime);
+  }
+
+  .sub {
+    color: var(--muted);
+    font-size: 14.5px;
+    max-width: 440px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+
+  /* --- Bin progress: signature element --- */
+  .bin-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    justify-content: center;
+    margin: 22px 0 26px;
+  }
+
+  .bin {
+    position: relative;
+    width: 46px;
+    height: 54px;
+    flex-shrink: 0;
+  }
+
+  .bin svg { width: 100%; height: 100%; display: block; }
+
+  .bin-fill {
+    position: absolute;
+    left: 5px; right: 5px; bottom: 6px;
+    height: 0%;
+    background: linear-gradient(180deg, var(--lime), #7cc157);
+    border-radius: 2px 2px 6px 6px;
+    transition: height 0.5s cubic-bezier(.4,1.4,.4,1);
+    z-index: 0;
+  }
+
+  .bin svg { position: relative; z-index: 1; }
+
+  .stats {
+    display: flex;
+    gap: 22px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .stats b {
+    color: var(--card-face);
+    font-size: 17px;
+    display: block;
+    font-weight: 700;
+  }
+
+  .stat-label { text-transform: uppercase; letter-spacing: 0.08em; font-size: 11px; }
+
+  /* --- Grid --- */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    perspective: 1000px;
+  }
+
+  @media (min-width: 560px) {
+    .grid { gap: 14px; }
+  }
+
+  .card {
+    aspect-ratio: 3 / 4;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .card-inner {
+    width: 100%; height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.5s cubic-bezier(.4,.2,.2,1);
+  }
+
+  .card.flipped .card-inner,
+  .card.matched .card-inner {
+    transform: rotateY(180deg);
+  }
+
+  .card-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .card-back {
+    background:
+      repeating-linear-gradient(135deg, var(--card-back), var(--card-back) 8px, var(--card-back-2) 8px, var(--card-back-2) 16px);
+    border: 1px solid var(--line);
+  }
+
+  .card-back::after {
+    content: '♻';
+    color: rgba(163,217,119,0.35);
+    font-size: clamp(20px, 5vw, 30px);
+  }
+
+  .card-front {
+    background: var(--card-face);
+    transform: rotateY(180deg);
+    flex-direction: column;
+    gap: 6px;
+    border: 1px solid rgba(13,31,24,0.08);
+  }
+
+  .card-front .icon {
+    font-size: clamp(26px, 7vw, 40px);
+    line-height: 1;
+  }
+
+  .card-front .label {
+    font-size: clamp(9px, 2vw, 11px);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+    text-align: center;
+    padding: 0 4px;
+  }
+
+  .card.matched .card-front {
+    background: linear-gradient(160deg, #eef7e2, var(--card-face));
+    box-shadow: inset 0 0 0 2px var(--lime);
+  }
+
+  .card.matched { animation: settle 0.5s ease; }
+  @keyframes settle {
+    0% { transform: scale(1); }
+    40% { transform: scale(0.92) rotate(-2deg); }
+    100% { transform: scale(1); }
+  }
+
+  .card:not(.matched):not(.flipped):hover .card-back {
+    border-color: var(--lime);
+  }
+
+  /* --- Win modal --- */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(11,26,21,0.82);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 10;
+  }
+
+  .modal-overlay.show { display: flex; }
+
+  .modal {
+    background: var(--card-face);
+    border-radius: 18px;
+    padding: 36px 32px;
+    max-width: 380px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+
+  .modal .icon-big { font-size: 46px; margin-bottom: 6px; }
+
+  .modal h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    margin: 4px 0 10px;
+    color: var(--ink);
+  }
+
+  .modal p { color: #4a5f54; font-size: 14px; margin-bottom: 22px; line-height: 1.5; }
+
+  .btn {
+    background: var(--ink);
+    color: var(--card-face);
+    border: none;
+    padding: 13px 26px;
+    border-radius: 999px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.2s ease;
+  }
+
+  .btn:hover { background: #1c3a2d; transform: translateY(-1px); }
+  .btn:focus-visible, .card:focus-visible .card-back { outline: 2px solid var(--lime); outline-offset: 3px; }
+
+  footer {
+    margin-top: 26px;
+    text-align: center;
+  }
+
+  .restart-link {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .restart-link:hover { color: var(--lime); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card-inner, .bin-fill, .card.matched { transition: none; animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Recicle a sua memória</div>
+    <h1>Minas Tênis <em>Recicla</em></h1>
+    <p class="sub">Vire as cartas e encontre os pares de materiais recicláveis antes de errar demais.</p>
+  </header>
+
+  <div class="bin-row">
+    <div class="bin" aria-hidden="true">
+      <div class="bin-fill" id="binFill"></div>
+      <svg viewBox="0 0 46 54" fill="none">
+        <path d="M8 14 L11 50 Q11 52 13 52 H33 Q35 52 35 50 L38 14" stroke="#f4efdf" stroke-width="2.5" stroke-linejoin="round" fill="none"/>
+        <path d="M5 14 H41" stroke="#f4efdf" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M17 14 L18 6 Q18 4 20 4 H26 Q28 4 28 6 L29 14" stroke="#f4efdf" stroke-width="2.5" stroke-linejoin="round" fill="none"/>
+      </svg>
+    </div>
+    <div class="stats">
+      <div><span class="stat-label">Pares</span><b><span id="pairsFound">0</span>/8</b></div>
+      <div><span class="stat-label">Jogadas</span><b id="moves">0</b></div>
+      <div><span class="stat-label">Tempo</span><b id="timer">00:00</b></div>
+    </div>
+  </div>
+
+  <div class="grid" id="grid" role="grid" aria-label="Tabuleiro do jogo da memória"></div>
+
+  <footer>
+    <button class="restart-link" id="restartBtn">Recomeçar jogo</button>
+  </footer>
+</div>
+
+<div class="modal-overlay" id="winModal">
+  <div class="modal">
+    <div class="icon-big">🌍</div>
+    <h2>Reciclagem completa!</h2>
+    <p id="winText">Você encontrou todos os pares.</p>
+    <button class="btn" id="playAgainBtn">Jogar novamente</button>
+  </div>
+</div>
+
+<script>
+  const materials = [
+    { icon: '📦', label: 'Papelão' },
+    { icon: '🍾', label: 'Vidro' },
+    { icon: '🥫', label: 'Lata' },
+    { icon: '🧴', label: 'Plástico' },
+    { icon: '🍌', label: 'Orgânico' },
+    { icon: '🔋', label: 'Pilha' },
+    { icon: '📱', label: 'Eletrônico' },
+    { icon: '👕', label: 'Tecido' },
+  ];
+
+  const grid = document.getElementById('grid');
+  const movesEl = document.getElementById('moves');
+  const pairsFoundEl = document.getElementById('pairsFound');
+  const timerEl = document.getElementById('timer');
+  const binFill = document.getElementById('binFill');
+  const winModal = document.getElementById('winModal');
+  const winText = document.getElementById('winText');
+  const restartBtn = document.getElementById('restartBtn');
+  const playAgainBtn = document.getElementById('playAgainBtn');
+
+  let deck = [], flipped = [], matchedCount = 0, moves = 0, lock = false;
+  let seconds = 0, timerInterval = null, started = false;
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function formatTime(s) {
+    const m = Math.floor(s / 60).toString().padStart(2, '0');
+    const sec = (s % 60).toString().padStart(2, '0');
+    return `${m}:${sec}`;
+  }
+
+  function startTimer() {
+    if (started) return;
+    started = true;
+    timerInterval = setInterval(() => {
+      seconds++;
+      timerEl.textContent = formatTime(seconds);
+    }, 1000);
+  }
+
+  function stopTimer() {
+    clearInterval(timerInterval);
+    started = false;
+  }
+
+  function buildBoard() {
+    deck = shuffle([...materials, ...materials].map((m, i) => ({ ...m, uid: i })));
+    grid.innerHTML = '';
+    flipped = [];
+    matchedCount = 0;
+    moves = 0;
+    seconds = 0;
+    lock = false;
+    stopTimer();
+    movesEl.textContent = '0';
+    pairsFoundEl.textContent = '0';
+    timerEl.textContent = '00:00';
+    binFill.style.height = '0%';
+    winModal.classList.remove('show');
+
+    deck.forEach((item) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.tabIndex = 0;
+      card.setAttribute('role', 'button');
+      card.setAttribute('aria-label', 'Carta virada para baixo');
+      card.dataset.icon = item.icon;
+      card.dataset.name = item.label;
+
+      card.innerHTML = `
+        <div class="card-inner">
+          <div class="card-face card-back"></div>
+          <div class="card-face card-front">
+            <div class="icon">${item.icon}</div>
+            <div class="label">${item.label}</div>
+          </div>
+        </div>
+      `;
+
+      card.addEventListener('click', () => handleFlip(card));
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleFlip(card); }
+      });
+
+      grid.appendChild(card);
+    });
+  }
+
+  function handleFlip(card) {
+    if (lock || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+
+    startTimer();
+    card.classList.add('flipped');
+    card.setAttribute('aria-label', `Carta: ${card.dataset.name}`);
+    flipped.push(card);
+
+    if (flipped.length === 2) {
+      moves++;
+      movesEl.textContent = moves;
+      lock = true;
+      const [a, b] = flipped;
+
+      if (a.dataset.name === b.dataset.name) {
+        setTimeout(() => {
+          a.classList.add('matched');
+          b.classList.add('matched');
+          matchedCount++;
+          pairsFoundEl.textContent = matchedCount;
+          binFill.style.height = `${(matchedCount / materials.length) * 100}%`;
+          flipped = [];
+          lock = false;
+
+          if (matchedCount === materials.length) {
+            stopTimer();
+            winText.textContent = `Você encontrou todos os pares em ${moves} jogadas e ${formatTime(seconds)}.`;
+            setTimeout(() => winModal.classList.add('show'), 500);
+          }
+        }, 350);
+      } else {
+        setTimeout(() => {
+          a.classList.remove('flipped');
+          b.classList.remove('flipped');
+          a.setAttribute('aria-label', 'Carta virada para baixo');
+          b.setAttribute('aria-label', 'Carta virada para baixo');
+          flipped = [];
+          lock = false;
+        }, 850);
+      }
+    }
+  }
+
+  restartBtn.addEventListener('click', buildBoard);
+  playAgainBtn.addEventListener('click', buildBoard);
+
+  buildBoard();
+</script>
+
+</body>
+</html>
